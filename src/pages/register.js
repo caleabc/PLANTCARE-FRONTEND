@@ -11,7 +11,11 @@ import { Input } from "baseui/input";
 import { Button, KIND } from "baseui/button";
 import { Notification } from "baseui/notification";
 
+// CONTEXT
+import { RegisterContext } from "../contexts/registerContext";
+
 function Register() {
+  var [users, setUsers] = React.useState([]);
   var [name, setName] = React.useState("");
   var [email, setEmail] = React.useState("");
   var [password, setPassword] = React.useState("");
@@ -23,6 +27,9 @@ function Register() {
   // adding checkpoint in endpoint
   var protectRoute = process.env.REACT_APP_PROTECT_ROUTE;
   const navigate = useNavigate();
+
+  // CONTEXT
+  var { handleAccountCreated } = React.useContext(RegisterContext);
 
   function handleClickBenblog() {
     navigate("/");
@@ -59,33 +66,44 @@ function Register() {
       return;
     }
 
-    // ======================
-    // Pull data from backend
-    // to be specific, administrator
-    // =============================
+    // check if user is authorize
+    // to create account
+    for (var i = 0; i < users.length; i++) {
+      if (email == users[i]["email"]) {
+        break;
+      }
+
+      // if user is unauthorize
+      // he/she cannot create an account
+      if (i + 1 == users.length) {
+        // terminate
+        return;
+      }
+    }
 
     // ==========================
     // Communicate to the backend
     // ==========================
     var data = {
-      name: name,
       email: email,
       password: md5(password),
     };
 
     // original address ==> "/register"
     var send = await axios.post(
-      `http://localhost:5000/${protectRoute}/register`,
+      `http://localhost:5000/${protectRoute}/register/update`,
       data
     );
 
     // user was successfully registered
-    if (send["data"] === "User registered") {
+    if (send["data"] === "user updated") {
       // message to localStorage
       localStorage.setItem("dontStoreSensitiveInformationInlocalStorage", true);
 
-      // one-way storing technique
-      localStorage.setItem("accountRegisteredHelper", true);
+      // CONTEXT
+      var handleAccountCreatedMate = handleAccountCreated;
+      // handle account created, mate
+      handleAccountCreatedMate();
 
       navigate("/login");
     }
@@ -95,33 +113,29 @@ function Register() {
     navigate("/login");
   }
 
+  React.useEffect(async function () {
+    // communicate to backend and get all users
+    // original address ==> "/register"
+    var getUsers = await axios.get(
+      `http://localhost:5000/${protectRoute}/register`
+    );
+    setUsers(getUsers["data"]);
+  }, []);
+
   return (
     <>
-      <Grid
-        overrides={{
-          Grid: {
-            style: {
-              display: "flex",
-              justifyContent: "center",
-            },
-          },
-        }}
-      >
-        <Cell span={6}>
-          <h1
-            style={{
-              cursor: "pointer",
-              marginBottom: "1px",
-              fontFamily: "Montserrat",
-              color: "gray",
-              textAlign: "center",
-            }}
-            onClick={handleClickBenblog}
-          >
-            PLANT CARE
-          </h1>
-        </Cell>
-      </Grid>
+      <div>
+        <p1
+          style={{
+            fontFamily: "Nunito",
+            fontSize: "1.8rem",
+            display: "block",
+            textAlign: "center",
+          }}
+        >
+          PLANT CARE
+        </p1>
+      </div>
 
       {/* Notification */}
       <Grid
@@ -156,7 +170,7 @@ function Register() {
             style: {
               display: "flex",
               justifyContent: "center",
-              marginTop: "50px",
+              marginTop: "10px",
             },
           },
         }}

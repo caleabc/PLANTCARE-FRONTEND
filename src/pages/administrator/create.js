@@ -10,11 +10,13 @@ import { FormControl } from "baseui/form-control";
 import { Input } from "baseui/input";
 import { Button, KIND } from "baseui/button";
 import { Notification } from "baseui/notification";
+import { RadioGroup, Radio, ALIGN } from "baseui/radio";
 
 function Create() {
   var [fname, setFname] = React.useState("");
   var [lname, setLname] = React.useState("");
   var [email, setEmail] = React.useState("");
+  var [role, setRole] = React.useState([]);
 
   var [errorMessage, setErrorMessage] = React.useState(false);
   var [successMessage, setSuccessMessage] = React.useState(false);
@@ -35,31 +37,30 @@ function Create() {
       fname: fname,
       lname: lname,
       email: email,
+      role: role,
       password: "",
     };
 
     // original address ==> "/administrator/create"
-    var send = await axios.post(
+    axios.post(
       `http://localhost:5000/${protectRoute}/administrator/create`,
       data
     );
 
-    // user was successfully registered
-    if (send["data"] === "Account registered") {
-      // scroll window to top
-      window.scrollTo(0, 0);
+    // scroll window to top
+    window.scrollTo(0, 0);
 
-      setSuccessMessage("Account registered");
-      setFname("");
-      setLname("");
-      setEmail("");
+    setSuccessMessage("Account registered");
+    setFname("");
+    setLname("");
+    setEmail("");
+    setRole("");
 
-      // adding setTimeout
-      // setTimeout is asynchronous
-      setTimeout(function () {
-        return setSuccessMessage(false);
-      }, 10000);
-    }
+    // adding setTimeout
+    // setTimeout is asynchronous
+    setTimeout(function () {
+      return setSuccessMessage(false);
+    }, 10000);
   }
 
   function handleClickCancel() {
@@ -159,6 +160,17 @@ function Create() {
                 value={email}
                 onChange={(e) => setEmail(e.currentTarget.value)}
               />
+            </FormControl>
+
+            <FormControl label="Role">
+              <RadioGroup
+                value={role}
+                onChange={(e) => setRole(e.currentTarget.value)}
+                align={ALIGN.horizontal}
+              >
+                <Radio value="evaluator">Evaluator</Radio>
+                <Radio value="supervisor">Supervisor</Radio>
+              </RadioGroup>
             </FormControl>
 
             <Button

@@ -11,6 +11,10 @@ import { Input } from "baseui/input";
 import { Button, KIND } from "baseui/button";
 import { Notification } from "baseui/notification";
 
+// CONTEXT
+import { LoginContext } from "../contexts/loginContext";
+import { RegisterContext } from "../contexts/registerContext";
+
 function Login() {
   var [users, setUsers] = React.useState([]);
   var [email, setEmail] = React.useState("");
@@ -23,6 +27,10 @@ function Login() {
   var protectRoute = process.env.REACT_APP_PROTECT_ROUTE;
   const navigate = useNavigate();
 
+  // CONTEXT
+  var { handleUserMate, handleAuthenticated } = React.useContext(LoginContext);
+  var { accountCreated } = React.useContext(RegisterContext);
+
   function handleClickCreateAccount() {
     navigate("/register");
   }
@@ -33,7 +41,15 @@ function Login() {
       if (users[i]["email"] === email) {
         if (users[i]["password"] === md5(password)) {
           localStorage.setItem("user", users[i]["name"]);
-          return navigate("/");
+          // CONTEXT
+          // why save function to variable,
+          // to use the function as a storage,
+          // not to execute call or trigger the function
+          handleUserMate(users[i]["name"]);
+          var handleAuthenticatedMateLocal = handleAuthenticated;
+          handleAuthenticatedMateLocal();
+          // END, CONTEXT
+          return navigate("/" + users[i]["role"]);
         } else {
           return navigate("/login");
         }
@@ -42,16 +58,6 @@ function Login() {
   }
 
   React.useEffect(async function () {
-    // one-way storing technique
-    // account succesfully registered
-    if (JSON.parse(localStorage.getItem("accountRegisteredHelper")) === true) {
-      setAccountRegistered(true);
-    } else {
-      setAccountRegistered(false);
-    }
-    localStorage.setItem("accountRegisteredHelper", false);
-    // end, account succesfully registered
-
     // communicate to backend and get all users
     // original address ==> "/register"
     var getUsers = await axios.get(
@@ -62,29 +68,18 @@ function Login() {
 
   return (
     <>
-      <Grid
-        overrides={{
-          Grid: {
-            style: {
-              display: "flex",
-              justifyContent: "center",
-            },
-          },
-        }}
-      >
-        <Cell span={6}>
-          <h1
-            style={{
-              marginBottom: "1px",
-              fontFamily: "Montserrat",
-              color: "gray",
-              textAlign: "center",
-            }}
-          >
-            PLANT CARE
-          </h1>
-        </Cell>
-      </Grid>
+      <div>
+        <p1
+          style={{
+            fontFamily: "Nunito",
+            fontSize: "1.8rem",
+            display: "block",
+            textAlign: "center",
+          }}
+        >
+          PLANT CARE
+        </p1>
+      </div>
 
       {/* Notification */}
       <Grid
@@ -98,7 +93,7 @@ function Login() {
         }}
       >
         <Cell span={6}>
-          {accountRegistered && (
+          {accountCreated && (
             <Notification
               overrides={{
                 Body: { style: { width: "auto" } },
@@ -121,7 +116,7 @@ function Login() {
             style: {
               display: "flex",
               justifyContent: "center",
-              marginTop: "50px",
+              marginTop: "10px",
             },
           },
         }}

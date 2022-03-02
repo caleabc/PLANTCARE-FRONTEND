@@ -30,6 +30,26 @@ function Administrator() {
     navigate("/login");
   }
 
+  async function handleClickDelete(id) {
+    // copy the state
+    // using spread operator
+    var usersCopy = [...users];
+    for (var i = 0; i < usersCopy.length; i++) {
+      if (usersCopy[i]["_id"] == id) {
+        usersCopy.splice(i, 1);
+        setUsers(usersCopy);
+
+        // communicate to the backend
+        // original address ==> "/administrator/delete/id"
+        await axios.get(
+          `http://localhost:5000/${protectRoute}/administrator/delete/${id}`
+        );
+
+        return;
+      }
+    }
+  }
+
   React.useEffect(async function () {
     // communicate to backend and get all users
     // original address ==> "/register"
@@ -142,8 +162,19 @@ function Administrator() {
                 <StyledBody>
                   <Label1 display={"flex"} justifyContent={"space-between"}>
                     <span>Name: {user["fname"] + " " + user["lname"]}</span>
-                    <span>
-                      <i class="bi bi-pen"></i>
+                    <span
+                      onClick={function () {
+                        handleClickDelete(user["_id"]);
+                      }}
+                    >
+                      <i
+                        style={{
+                          color: "lightgray",
+                          marginLeft: "2px",
+                          cursor: "pointer",
+                        }}
+                        className="bi bi-trash"
+                      ></i>
                     </span>
                   </Label1>
 
